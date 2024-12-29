@@ -37,12 +37,12 @@ body {
 
 /* Main content styling */
 .main-content {
-    flex: 1; /* Allows it to take up available space */
+    flex: 0; /* Allows it to take up available space */
     display: flex;
     justify-content: center;
     align-items: center; /* Center vertically */
     padding: 20px;
-    margin-top: 80px; /* Offset for fixed header */
+    margin-top: 0px; /* Offset for fixed header */
     box-sizing: border-box; /* Ensure padding doesn't affect layout */
 }
 
