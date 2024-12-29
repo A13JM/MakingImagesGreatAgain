@@ -3,7 +3,113 @@
 // Dynamically inject additional styles specific to the Tag Finder
 const style = document.createElement('style');
 style.textContent = `
-    /* Additional styles can be placed here if needed */
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        max-width: 400px; /* Increased max-width for better layout */
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .search-bar {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    .search-bar input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+    .search-bar input:focus {
+        border-color: #3498db;
+        outline: none;
+    }
+    .scrolling-frame {
+        width: 100%;
+        height: 450px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        overflow-y: auto;
+        background-color: #fafafa;
+        position: relative;
+    }
+    .scrolling-frame::-webkit-scrollbar {
+        width: 8px;
+    }
+    .scrolling-frame::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    .scrolling-frame::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 4px;
+    }
+    .scrolling-frame::-webkit-scrollbar-thumb:hover {
+        background: #bbb;
+    }
+    .virtual-list {
+        position: relative;
+        width: 100%;
+    }
+    .virtual-item {
+        position: absolute;
+        width: 95%;
+        left: 2.5%;
+        padding: 10px 12px;
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        color: #333;
+        transition: background 0.3s, transform 0.2s;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    .virtual-item:hover {
+        background: #f0f8ff;
+        transform: scale(1.02);
+    }
+    .virtual-item span.highlight {
+        background-color: #ffeb3b;
+        color: #333;
+        border-radius: 3px;
+    }
+    /* Tooltip styles */
+    .tooltip {
+        position: fixed;
+        background-color: #333;
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-size: 14px;
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        pointer-events: none;
+        z-index: 1000;
+        left: 50%;
+        bottom: 40px;
+    }
+    .tooltip.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+        animation: flyIn 0.3s ease forwards;
+    }
+    @keyframes flyIn {
+        from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    }
 `;
 document.head.appendChild(style);
 
@@ -18,8 +124,7 @@ const input = document.createElement('input');
 input.type = 'text';
 input.id = 'searchInput';
 input.placeholder = 'Search tags...';
-input.setAttribute('aria-label', 'Search tags'); // Accessibility
-input.oninput = debounce(() => filterAndRender(), 300); // Debounced input
+input.oninput = () => filterAndRender();
 searchBar.appendChild(input);
 
 const scrollingFrame = document.createElement('div');
@@ -39,26 +144,19 @@ app.appendChild(container);
 const tooltip = document.createElement('div');
 tooltip.className = 'tooltip';
 tooltip.id = 'tooltip';
-tooltip.setAttribute('role', 'status');
-tooltip.setAttribute('aria-live', 'polite');
+tooltip.innerText = 'Copied!';
 document.body.appendChild(tooltip);
 
 // JavaScript logic for functionality
 let cachedTags = [];
 let filteredTags = [];
-const itemHeight = 70; // Adjusted for larger items
+const itemHeight = 60; // Adjusted for larger items
 const buffer = 5;
 
 // URL of the raw CSV file on GitHub
 const csvUrl = 'https://raw.githubusercontent.com/BetaDoggo/danbooru-tag-list/main/danbooru-12-10-24-dash.csv';
 
 async function loadTags() {
-    // Show loading indicator
-    const loadingIndicator = document.createElement('p');
-    loadingIndicator.id = 'loadingIndicator';
-    loadingIndicator.innerText = 'Loading tags...';
-    container.appendChild(loadingIndicator);
-
     try {
         const response = await fetch(csvUrl);
         const data = await response.text();
@@ -67,9 +165,6 @@ async function loadTags() {
         renderVirtualizedList();
     } catch (error) {
         console.error('Error fetching or parsing the CSV data:', error);
-        loadingIndicator.innerText = 'Failed to load tags. Please try again later.';
-    } finally {
-        loadingIndicator.style.display = 'none';
     }
 }
 
@@ -106,14 +201,6 @@ function updateVisibleItems(scrollingFrame, virtualList) {
         Math.ceil((scrollTop + frameHeight) / itemHeight) + buffer
     );
 
-    // Clear existing items
-    virtualList.innerHTML = '';
-
-    if (filteredTags.length === 0) {
-        virtualList.innerHTML = '<p class="no-results">No tags found.</p>';
-        return;
-    }
-
     const fragment = document.createDocumentFragment();
     for (let i = startIndex; i < endIndex; i++) {
         const item = document.createElement('div');
@@ -128,6 +215,7 @@ function updateVisibleItems(scrollingFrame, virtualList) {
         fragment.appendChild(item);
     }
 
+    virtualList.innerHTML = '';
     virtualList.appendChild(fragment);
 }
 
@@ -145,17 +233,6 @@ function filterAndRender() {
     const searchInput = document.getElementById('searchInput').value.toLowerCase();
     filteredTags = cachedTags.filter(tag => tag.toLowerCase().includes(searchInput));
     renderVirtualizedList();
-}
-
-// Debounce function to limit the rate of function calls
-function debounce(func, delay) {
-    let debounceTimer;
-    return function() {
-        const context = this;
-        const args = arguments;
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => func.apply(context, args), delay);
-    }
 }
 
 async function copyToClipboard(text) {
