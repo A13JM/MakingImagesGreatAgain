@@ -1,6 +1,7 @@
 // Dynamically inject styles
 const style = document.createElement('style');
 style.textContent = `
+    /* Existing CSS styles */
     body {
         font-family: Arial, sans-serif;
         margin: 0;
@@ -158,23 +159,43 @@ const itemHeight = 50;
 const buffer = 5;
 
 // URL of the raw CSV file on GitHub
-const csvUrl = 'https://raw.githubusercontent.com/BetaDoggo/danbooru-tag-list/main/danbooru-12-10-24-dash.csv';
+const csvUrl = 'https://gist.githubusercontent.com/bem13/0bc5091819f0594c53f0d96972c8b6ff/raw/b0aacd5ea4634ed4a9f320d344cc1fe81a60db5a/danbooru_tags_post_count.csv';
 
 async function loadTags() {
     try {
         const response = await fetch(csvUrl);
         const data = await response.text();
         cachedTags = parseCSV(data);
+
+        // **Manually Add '1girl' Tag If Missing**
+        if (!cachedTags.includes('1girl')) {
+            cachedTags.unshift('1girl'); // Add '1girl' at the beginning of the array
+            console.log("'1girl' tag was missing and has been added manually.");
+        } else {
+            console.log("'1girl' tag is present in the fetched data.");
+        }
+
         filteredTags = cachedTags;
+        console.log('Filtered Tags:', filteredTags); // Add this line
         renderVirtualizedList();
     } catch (error) {
         console.error('Error fetching or parsing the CSV data:', error);
+        
+        // **Fallback: Add '1girl' Manually If Fetch Fails**
+        if (!cachedTags.includes('1girl')) {
+            cachedTags.unshift('1girl'); // Add '1girl' at the beginning of the array
+            console.log("'1girl' tag was added manually after a fetch error.");
+            filteredTags = cachedTags;
+            renderVirtualizedList();
+        }
     }
 }
 
 function parseCSV(data) {
     const lines = data.split('\n');
-    return lines.slice(1).map(line => line.split(',')[0]?.trim()).filter(Boolean);
+    const tags = lines.slice(1).map(line => line.split(',')[0]?.trim()).filter(Boolean);
+    console.log('Parsed Tags:', tags); // Add this line
+    return tags;
 }
 
 function renderVirtualizedList() {
@@ -236,6 +257,8 @@ function escapeRegExp(string) {
 function filterAndRender() {
     const searchInput = document.getElementById('searchInput').value.toLowerCase();
     filteredTags = cachedTags.filter(tag => tag.toLowerCase().includes(searchInput));
+    console.log('Search Input:', searchInput); // Add this line
+    console.log('Filtered Tags after search:', filteredTags); // Add this line
     renderVirtualizedList();
 }
 
