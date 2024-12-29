@@ -42,7 +42,7 @@ body {
     justify-content: center;
     align-items: center; /* Center vertically */
     padding: 20px;
-    margin-top: 80px; /* Offset for fixed header */
+    margin-top: 0px; /* Offset for fixed header */
     box-sizing: border-box; /* Ensure padding doesn't affect layout */
 }
 
@@ -95,7 +95,7 @@ body {
 /* Scrolling frame styling */
 .scrolling-frame {
     width: 100%;
-    height: 400px;
+    height: 600px;
     overflow-y: auto;
     background-color: #1e1e1e;
     border: 1px solid #333;
