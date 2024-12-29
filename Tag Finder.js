@@ -7,29 +7,18 @@ style.textContent = `
         padding: 0;
         display: flex;
         flex-direction: column;
-        min-height: 100vh;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
         background-color: #121212; /* Dark background */
         color: #e0e0e0; /* Light text color for contrast */
     }
     .container {
         display: flex;
         flex-direction: column;
-        flex: 1;
         align-items: center;
         width: 100%;
         max-width: 320px;
-        padding: 20px;
-        box-sizing: border-box;
-    }
-    header {
-        width: 100%;
-        text-align: center;
-        margin-bottom: 20px;
-    }
-    header h1 {
-        margin: 0;
-        font-size: 2em;
-        color: #ffcc00; /* Accent color for the title */
     }
     .search-bar {
         width: 100%;
@@ -43,7 +32,6 @@ style.textContent = `
         background-color: #1e1e1e;
         color: #e0e0e0;
         box-sizing: border-box;
-        font-size: 1em;
     }
     .scrolling-frame {
         width: 100%;
@@ -127,27 +115,12 @@ style.textContent = `
             transform: translateX(-50%) translateY(0);
         }
     }
-    /* Footer styles */
-    footer {
-        width: 100%;
-        text-align: center;
-        padding: 10px 0;
-        font-size: 0.8em;
-        color: #888;
-        margin-top: auto;
-    }
-    footer p {
-        margin: 0;
-    }
 `;
 document.head.appendChild(style);
 
 // Create the HTML structure
-const container = document.querySelector('.container');
-
-const header = container.querySelector('header');
-
-const main = container.querySelector('main');
+const container = document.createElement('div');
+container.className = 'container';
 
 const searchBar = document.createElement('div');
 searchBar.className = 'search-bar';
@@ -167,8 +140,9 @@ virtualList.className = 'virtual-list';
 virtualList.id = 'virtualList';
 
 scrollingFrame.appendChild(virtualList);
-main.appendChild(searchBar);
-main.appendChild(scrollingFrame);
+container.appendChild(searchBar);
+container.appendChild(scrollingFrame);
+document.body.appendChild(container);
 
 // Create a tooltip element for copy confirmation
 const tooltip = document.createElement('div');
@@ -176,15 +150,6 @@ tooltip.className = 'tooltip';
 tooltip.id = 'tooltip';
 tooltip.innerText = 'Copied!';
 document.body.appendChild(tooltip);
-
-// Create the footer element (if not already present in HTML)
-const footer = container.querySelector('footer');
-// If footer is empty, ensure it contains the text
-if (!footer.innerHTML.trim()) {
-    const footerText = document.createElement('p');
-    footerText.innerText = 'Made by A13JM';
-    footer.appendChild(footerText);
-}
 
 // JavaScript logic for functionality
 let cachedTags = [];
