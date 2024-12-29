@@ -13,6 +13,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    margin: 0;
 }
 
 /* Header styling */
@@ -24,8 +25,8 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Slightly stronger shadow for dark mode */
     position: fixed; /* Keep it fixed at the top */
     top: 0;
-    left: 0; /* Ensure full width */
-    right: 0; /* Ensure full width */
+    left: 0;
+    right: 0;
     z-index: 1000;
 }
 
@@ -36,14 +37,13 @@ body {
 
 /* Main content styling */
 .main-content {
-    flex: 1;
+    flex: 0; /* Allows it to take up available space */
     display: flex;
     justify-content: center;
-    align-items: center;
-    padding: 40px 20px;
-    color: #e0e0e0; /* Ensure text in this area is legible */
+    align-items: center; /* Center vertically */
+    padding: 20px;
     margin-top: 80px; /* Offset for fixed header */
-    margin-bottom: 60px; /* Offset for fixed footer */
+    box-sizing: border-box; /* Ensure padding doesn't affect layout */
 }
 
 /* Footer styling */
@@ -55,71 +55,87 @@ body {
     font-size: 0.9rem;
     position: fixed; /* Keep it fixed at the bottom */
     bottom: 0;
-    left: 0; /* Ensure full width */
-    right: 0; /* Ensure full width */
+    left: 0;
+    right: 0;
     z-index: 1000;
 }
 
-/* Search bar container */
+/* Container for dynamic JavaScript content */
 .container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: center; /* Center content inside the container */
     width: 100%;
     max-width: 400px; /* Define a max width for the content */
     background-color: #1e1e1e; /* Matches header and footer */
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    margin: auto; /* Ensures centering within the available space */
 }
 
 /* Search bar styling */
 .search-bar {
     width: 100%;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .search-bar input {
     width: 100%;
-    padding: 15px 20px; /* Add padding for better usability */
-    border: 1px solid #444; /* Subtle border */
-    border-radius: 8px; /* Rounded corners */
-    background-color: #2c2c2c; /* Dark background for input */
-    color: #e0e0e0; /* Light text for input */
+    padding: 15px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    background-color: #2c2c2c;
+    color: #e0e0e0;
     font-size: 1rem;
+    box-sizing: border-box;
 }
 
-/* Scrollable area styling */
+/* Scrolling frame styling */
 .scrolling-frame {
     width: 100%;
-    max-height: 300px; /* Limit the height */
+    height: 400px;
     overflow-y: auto;
-    background-color: #1e1e1e; /* Matches container */
-    border: 1px solid #444;
+    background-color: #1e1e1e;
+    border: 1px solid #333;
     border-radius: 8px;
 }
 
-/* Virtual items styling */
+/* Items in the scrolling frame */
 .virtual-item {
-    padding: 10px 15px;
-    margin: 10px 0;
-    background-color: #2c2c2c; /* Slightly lighter than container */
+    padding: 10px;
+    background-color: #333;
     border-radius: 8px;
     color: #e0e0e0;
+    margin-bottom: 10px;
+    cursor: pointer;
     transition: background-color 0.3s;
 }
 
 .virtual-item:hover {
-    background-color: #444; /* Highlight on hover */
+    background-color: #444;
 }
 
-/* Responsive adjustments */
-@media (max-width: 600px) {
-    .header h1 {
-        font-size: 1.5rem;
-    }
-    .container {
-        max-width: 300px; /* Reduce width on smaller screens */
-    }
+/* Tooltip styling */
+.tooltip {
+    position: fixed;
+    background-color: #444;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    z-index: 1000;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%) translateY(20px);
+}
+
+.tooltip.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
 }
