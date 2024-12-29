@@ -1,121 +1,7 @@
-// Dynamically inject styles
+// Dynamically inject styles (as shown above)
 const style = document.createElement('style');
 style.textContent = `
-    /* Existing CSS styles */
-    body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        background-color: #121212; /* Dark background */
-        color: #e0e0e0; /* Light text color for contrast */
-    }
-    .container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        max-width: 320px;
-    }
-    .search-bar {
-        width: 100%;
-        margin-bottom: 15px;
-    }
-    .search-bar input {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #333;
-        border-radius: 5px;
-        background-color: #1e1e1e;
-        color: #e0e0e0;
-        box-sizing: border-box;
-    }
-    .scrolling-frame {
-        width: 100%;
-        height: 400px;
-        border: 1px solid #333;
-        border-radius: 5px;
-        overflow-y: auto;
-        background-color: #1e1e1e;
-        box-sizing: border-box;
-        position: relative;
-    }
-    .scrolling-frame::-webkit-scrollbar {
-        width: 8px; /* Shrink the scrollbar size */
-    }
-    .scrolling-frame::-webkit-scrollbar-track {
-        background: #1e1e1e; /* Dark scrollbar track */
-    }
-    .scrolling-frame::-webkit-scrollbar-thumb {
-        background: #444; /* Darker scrollbar handle */
-        border-radius: 4px;
-    }
-    .scrolling-frame::-webkit-scrollbar-thumb:hover {
-        background: #555; /* Slightly lighter on hover */
-    }
-    .virtual-list {
-        position: relative;
-        width: 100%;
-    }
-    .virtual-item {
-        position: absolute;
-        width: 95%; /* Slightly shrink the lighter gray width */
-        left: 2.5%; /* Center align */
-        padding: 8px; /* Reduced padding */
-        box-sizing: border-box;
-        background: #333;
-        border-radius: 3px;
-        margin-bottom: 8px;
-        color: #e0e0e0;
-        transition: background 0.3s, transform 0.2s;
-        cursor: pointer; /* Indicate clickable items */
-    }
-    .virtual-item:hover {
-        background: #444;
-        transform: scale(1.02); /* Slightly enlarge on hover */
-    }
-    .virtual-item span.highlight {
-        background-color: #444;
-        color: #ffcc00; /* Highlighted text color */
-        border-radius: 3px;
-    }
-    /* Tooltip styles */
-    .tooltip {
-        position: fixed; /* Changed to fixed to position relative to viewport */
-        background-color: #444;
-        color: #fff;
-        padding: 10px 20px; /* Increased padding for larger size */
-        border-radius: 6px; /* Slightly larger border-radius */
-        font-size: 14px; /* Increased font size */
-        opacity: 0;
-        transform: translateY(20px); /* Start below */
-        transition: opacity 0.3s ease, transform 0.3s ease; /* Consistent transition */
-        pointer-events: none;
-        z-index: 1000;
-        left: 50%;
-        bottom: 30px; /* Positioned 30px from the bottom */
-        transform: translateX(-50%) translateY(20px); /* Center horizontally and start below */
-    }
-    .tooltip.show {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0); /* Move to final position */
-        animation: flyIn 0.3s ease forwards; /* Fly-in animation */
-    }
-    /* Fly-in keyframes */
-    @keyframes flyIn {
-        from {
-            opacity: 0;
-            transform: translateX(-50%) translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-    }
+    /* [Insert the updated CSS from above here] */
 `;
 document.head.appendChild(style);
 
@@ -176,7 +62,7 @@ async function loadTags() {
         }
 
         filteredTags = cachedTags;
-        console.log('Filtered Tags:', filteredTags); // Add this line
+        console.log('Filtered Tags:', filteredTags); // Debugging
         renderVirtualizedList();
     } catch (error) {
         console.error('Error fetching or parsing the CSV data:', error);
@@ -194,7 +80,7 @@ async function loadTags() {
 function parseCSV(data) {
     const lines = data.split('\n');
     const tags = lines.slice(1).map(line => line.split(',')[0]?.trim()).filter(Boolean);
-    console.log('Parsed Tags:', tags); // Add this line
+    console.log('Parsed Tags:', tags); // Debugging
     return tags;
 }
 
@@ -257,8 +143,8 @@ function escapeRegExp(string) {
 function filterAndRender() {
     const searchInput = document.getElementById('searchInput').value.toLowerCase();
     filteredTags = cachedTags.filter(tag => tag.toLowerCase().includes(searchInput));
-    console.log('Search Input:', searchInput); // Add this line
-    console.log('Filtered Tags after search:', filteredTags); // Add this line
+    console.log('Search Input:', searchInput); // Debugging
+    console.log('Filtered Tags after search:', filteredTags); // Debugging
     renderVirtualizedList();
 }
 
@@ -279,7 +165,7 @@ function showTooltip(message, isError = false) {
     
     // Reset animation by removing and re-adding the 'show' class
     tooltip.classList.remove('show');
-    void tooltip.offsetWidth; // Trigger reflow to restart animation
+    void tooltip.offsetWidth; // Trigger reflow to restart transition
     tooltip.classList.add('show');
 
     // Automatically hide after 2 seconds
