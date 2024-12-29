@@ -1,60 +1,56 @@
-// Dynamically inject styles
+// Tag Finder.js
+
+// Dynamically inject additional styles specific to the Tag Finder
 const style = document.createElement('style');
 style.textContent = `
-    body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        background-color: #121212; /* Dark background */
-        color: #e0e0e0; /* Light text color for contrast */
-    }
     .container {
         display: flex;
         flex-direction: column;
         align-items: center;
         width: 100%;
-        max-width: 320px;
+        max-width: 400px; /* Increased max-width for better layout */
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
     .search-bar {
         width: 100%;
-        margin-bottom: 15px;
+        margin-bottom: 20px;
     }
     .search-bar input {
         width: 100%;
-        padding: 10px;
-        border: 1px solid #333;
-        border-radius: 5px;
-        background-color: #1e1e1e;
-        color: #e0e0e0;
-        box-sizing: border-box;
+        padding: 12px 16px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+    .search-bar input:focus {
+        border-color: #3498db;
+        outline: none;
     }
     .scrolling-frame {
         width: 100%;
-        height: 400px;
-        border: 1px solid #333;
-        border-radius: 5px;
+        height: 450px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
         overflow-y: auto;
-        background-color: #1e1e1e;
-        box-sizing: border-box;
+        background-color: #fafafa;
         position: relative;
     }
     .scrolling-frame::-webkit-scrollbar {
-        width: 8px; /* Shrink the scrollbar size */
+        width: 8px;
     }
     .scrolling-frame::-webkit-scrollbar-track {
-        background: #1e1e1e; /* Dark scrollbar track */
+        background: #f1f1f1;
     }
     .scrolling-frame::-webkit-scrollbar-thumb {
-        background: #444; /* Darker scrollbar handle */
+        background: #ccc;
         border-radius: 4px;
     }
     .scrolling-frame::-webkit-scrollbar-thumb:hover {
-        background: #555; /* Slightly lighter on hover */
+        background: #bbb;
     }
     .virtual-list {
         position: relative;
@@ -62,49 +58,48 @@ style.textContent = `
     }
     .virtual-item {
         position: absolute;
-        width: 95%; /* Slightly shrink the lighter gray width */
-        left: 2.5%; /* Center align */
-        padding: 8px; /* Reduced padding */
-        box-sizing: border-box;
-        background: #333;
-        border-radius: 3px;
-        margin-bottom: 8px;
-        color: #e0e0e0;
+        width: 95%;
+        left: 2.5%;
+        padding: 10px 12px;
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        color: #333;
         transition: background 0.3s, transform 0.2s;
-        cursor: pointer; /* Indicate clickable items */
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
     .virtual-item:hover {
-        background: #444;
-        transform: scale(1.02); /* Slightly enlarge on hover */
+        background: #f0f8ff;
+        transform: scale(1.02);
     }
     .virtual-item span.highlight {
-        background-color: #444;
-        color: #ffcc00; /* Highlighted text color */
+        background-color: #ffeb3b;
+        color: #333;
         border-radius: 3px;
     }
     /* Tooltip styles */
     .tooltip {
-        position: fixed; /* Changed to fixed to position relative to viewport */
-        background-color: #444;
+        position: fixed;
+        background-color: #333;
         color: #fff;
-        padding: 10px 20px; /* Increased padding for larger size */
-        border-radius: 6px; /* Slightly larger border-radius */
-        font-size: 14px; /* Increased font size */
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-size: 14px;
         opacity: 0;
-        transform: translateY(20px); /* Start below */
-        transition: opacity 0.3s ease, transform 0.3s ease; /* Consistent transition */
+        transform: translateX(-50%) translateY(20px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
         pointer-events: none;
         z-index: 1000;
         left: 50%;
-        bottom: 30px; /* Positioned 30px from the bottom */
-        transform: translateX(-50%) translateY(20px); /* Center horizontally and start below */
+        bottom: 40px;
     }
     .tooltip.show {
         opacity: 1;
-        transform: translateX(-50%) translateY(0); /* Move to final position */
-        animation: flyIn 0.3s ease forwards; /* Fly-in animation */
+        transform: translateX(-50%) translateY(0);
+        animation: flyIn 0.3s ease forwards;
     }
-    /* Fly-in keyframes */
     @keyframes flyIn {
         from {
             opacity: 0;
@@ -118,7 +113,8 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Create the HTML structure
+// Create the HTML structure within the #app container
+const app = document.getElementById('app');
 const container = document.createElement('div');
 container.className = 'container';
 
@@ -142,7 +138,7 @@ virtualList.id = 'virtualList';
 scrollingFrame.appendChild(virtualList);
 container.appendChild(searchBar);
 container.appendChild(scrollingFrame);
-document.body.appendChild(container);
+app.appendChild(container);
 
 // Create a tooltip element for copy confirmation
 const tooltip = document.createElement('div');
@@ -154,7 +150,7 @@ document.body.appendChild(tooltip);
 // JavaScript logic for functionality
 let cachedTags = [];
 let filteredTags = [];
-const itemHeight = 50;
+const itemHeight = 60; // Adjusted for larger items
 const buffer = 5;
 
 // URL of the raw CSV file on GitHub
@@ -252,8 +248,8 @@ async function copyToClipboard(text) {
 function showTooltip(message, isError = false) {
     const tooltip = document.getElementById('tooltip');
     tooltip.innerText = message;
-    tooltip.style.backgroundColor = isError ? '#ff4c4c' : '#444';
-    
+    tooltip.style.backgroundColor = isError ? '#e74c3c' : '#333';
+
     // Reset animation by removing and re-adding the 'show' class
     tooltip.classList.remove('show');
     void tooltip.offsetWidth; // Trigger reflow to restart animation
