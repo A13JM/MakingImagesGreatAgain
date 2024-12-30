@@ -1,178 +1,98 @@
-// Dynamically inject styles (as shown above)
-const style = document.createElement('style');
-style.textContent = `
-    /* [Insert the updated CSS from above here] */
-`;
-document.head.appendChild(style);
+let lastValidMessage = "Input Ratio:"; // Default message when no valid resolution is output
+let demoInterval; // To track the interval for the demo animation
 
-// Create the HTML structure
-const container = document.createElement('div');
-container.className = 'container';
+function calculateResolution(aspectRatio) {
+    const totalPixels = 1048576; // Total pixels (1024 x 1024)
+    const [widthRatio, heightRatio] = aspectRatio.split(':').map(Number);
 
-const searchBar = document.createElement('div');
-searchBar.className = 'search-bar';
-const input = document.createElement('input');
-input.type = 'text';
-input.id = 'searchInput';
-input.placeholder = 'Search tags...';
-input.oninput = () => filterAndRender();
-searchBar.appendChild(input);
+    // Validate aspect ratio
+    if (!widthRatio || !heightRatio || widthRatio <= 0 || heightRatio <= 0) {
+        return null; // Return null for invalid inputs
+    }
 
-const scrollingFrame = document.createElement('div');
-scrollingFrame.className = 'scrolling-frame';
-scrollingFrame.id = 'scrollingFrame';
+    // Calculate scale factor and dimensions
+    const scaleFactor = Math.sqrt(totalPixels / (widthRatio * heightRatio));
+    const width = Math.round(widthRatio * scaleFactor);
+    const height = Math.round(heightRatio * scaleFactor);
 
-const virtualList = document.createElement('div');
-virtualList.className = 'virtual-list';
-virtualList.id = 'virtualList';
+    // Update the preview box with calculated dimensions
+    updatePreviewBox(width, height);
 
-scrollingFrame.appendChild(virtualList);
-container.appendChild(searchBar);
-container.appendChild(scrollingFrame);
-document.body.appendChild(container);
+    return `${width} x ${height}`; // Return formatted resolution
+}
 
-// Create a tooltip element for copy confirmation
-const tooltip = document.createElement('div');
-tooltip.className = 'tooltip';
-tooltip.id = 'tooltip';
-tooltip.innerText = 'Copied!';
-document.body.appendChild(tooltip);
+function validateAndCalculate() {
+    const aspectRatioInput = document.getElementById('aspectRatio').value.trim();
+    const outputElement = document.getElementById('output');
 
-// JavaScript logic for functionality
-let cachedTags = [];
-let filteredTags = [];
-const itemHeight = 50;
-const buffer = 5;
+    // Stop demo animation when user starts typing
+    clearInterval(demoInterval);
 
-// URL of the raw CSV file on GitHub
-const csvUrl = 'https://gist.githubusercontent.com/bem13/0bc5091819f0594c53f0d96972c8b6ff/raw/b0aacd5ea4634ed4a9f320d344cc1fe81a60db5a/danbooru_tags_post_count.csv';
+    // Check if input contains valid separator ':'
+    if (aspectRatioInput.includes(':')) {
+        const result = calculateResolution(aspectRatioInput);
 
-async function loadTags() {
-    try {
-        const response = await fetch(csvUrl);
-        const data = await response.text();
-        cachedTags = parseCSV(data);
-
-        // **Manually Add '1girl' Tag If Missing**
-        if (!cachedTags.includes('1girl')) {
-            cachedTags.unshift('1girl'); // Add '1girl' at the beginning of the array
-            console.log("'1girl' tag was missing and has been added manually.");
-        } else {
-            console.log("'1girl' tag is present in the fetched data.");
-        }
-
-        filteredTags = cachedTags;
-        console.log('Filtered Tags:', filteredTags); // Debugging
-        renderVirtualizedList();
-    } catch (error) {
-        console.error('Error fetching or parsing the CSV data:', error);
-        
-        // **Fallback: Add '1girl' Manually If Fetch Fails**
-        if (!cachedTags.includes('1girl')) {
-            cachedTags.unshift('1girl'); // Add '1girl' at the beginning of the array
-            console.log("'1girl' tag was added manually after a fetch error.");
-            filteredTags = cachedTags;
-            renderVirtualizedList();
+        if (result) {
+            // Valid resolution: Update the message
+            lastValidMessage = `Resolution: ${result}`;
         }
     }
+
+    // Display the last valid message or default if none exists
+    displayOutput(outputElement, lastValidMessage);
 }
 
-function parseCSV(data) {
-    const lines = data.split('\n');
-    const tags = lines.slice(1).map(line => line.split(',')[0]?.trim()).filter(Boolean);
-    console.log('Parsed Tags:', tags); // Debugging
-    return tags;
-}
+function displayOutput(element, message) {
+    element.textContent = message;
 
-function renderVirtualizedList() {
-    const scrollingFrame = document.getElementById('scrollingFrame');
-    const virtualList = document.getElementById('virtualList');
-
-    virtualList.style.height = `${filteredTags.length * itemHeight}px`;
-
-    // Remove previous scroll listener to prevent multiple bindings
-    scrollingFrame.removeEventListener('scroll', onScroll);
-    scrollingFrame.addEventListener('scroll', onScroll);
-    updateVisibleItems(scrollingFrame, virtualList);
-}
-
-function onScroll(event) {
-    const scrollingFrame = event.target;
-    const virtualList = document.getElementById('virtualList');
-    updateVisibleItems(scrollingFrame, virtualList);
-}
-
-function updateVisibleItems(scrollingFrame, virtualList) {
-    const scrollTop = scrollingFrame.scrollTop;
-    const frameHeight = scrollingFrame.clientHeight;
-
-    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - buffer);
-    const endIndex = Math.min(
-        filteredTags.length,
-        Math.ceil((scrollTop + frameHeight) / itemHeight) + buffer
-    );
-
-    const fragment = document.createDocumentFragment();
-    for (let i = startIndex; i < endIndex; i++) {
-        const item = document.createElement('div');
-        item.className = 'virtual-item';
-        item.style.top = `${i * itemHeight}px`;
-        item.innerHTML = highlightText(filteredTags[i], document.getElementById('searchInput').value);
-        item.dataset.tag = filteredTags[i]; // Store the tag for copying
-
-        // Add click event listener to copy tag
-        item.addEventListener('click', () => copyToClipboard(filteredTags[i]));
-
-        fragment.appendChild(item);
+    // Change color dynamically based on the message
+    if (message === "Input Ratio:") {
+        element.style.color = "#373737"; // Keep gray for default message
+    } else {
+        element.style.color = "#80c7ff"; // Replace this with the original or desired color
     }
 
-    virtualList.innerHTML = '';
-    virtualList.appendChild(fragment);
+    element.classList.add('show');
 }
 
-function highlightText(tag, query) {
-    if (!query) return tag;
-    const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
-    return tag.replace(regex, `<span class="highlight">$1</span>`);
+function updatePreviewBox(width, height) {
+    const previewBox = document.getElementById('previewBox');
+    const maxDimension = 200; // Maximum size for the preview box
+    const scaleFactor = Math.min(maxDimension / width, maxDimension / height);
+
+    // Update the preview box dimensions
+    previewBox.style.width = `${Math.round(width * scaleFactor)}px`;
+    previewBox.style.height = `${Math.round(height * scaleFactor)}px`;
 }
 
-function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special characters for regex
+function startDemoAnimation() {
+    const previewBox = document.getElementById('previewBox');
+
+    demoInterval = setInterval(() => {
+        const randomWidth = Math.floor(Math.random() * 300) + 50; // Random width between 50 and 300
+        const randomHeight = Math.floor(Math.random() * 300) + 50; // Random height between 50 and 300
+
+        // Apply random dimensions to the preview box
+        previewBox.style.width = `${randomWidth}px`;
+        previewBox.style.height = `${randomHeight}px`;
+    }, 500); // Change dimensions every 300ms for smoother transitions
+
+    // Stop the demo after 5 seconds
+    setTimeout(() => {
+        clearInterval(demoInterval);
+        previewBox.style.width = "150px"; // Reset to default size
+        previewBox.style.height = "150px";
+    }, 2000);
 }
 
-function filterAndRender() {
-    const searchInput = document.getElementById('searchInput').value.toLowerCase();
-    filteredTags = cachedTags.filter(tag => tag.toLowerCase().includes(searchInput));
-    console.log('Search Input:', searchInput); // Debugging
-    console.log('Filtered Tags after search:', filteredTags); // Debugging
-    renderVirtualizedList();
-}
+// Start demo animation on page load
+window.onload = () => {
+    startDemoAnimation();
 
-async function copyToClipboard(text) {
-    try {
-        await navigator.clipboard.writeText(text);
-        showTooltip(`Copied "${text}" to clipboard`);
-    } catch (err) {
-        console.error('Failed to copy text: ', err);
-        showTooltip('Failed to copy', true);
-    }
-}
+    // Initialize default output
+    const outputElement = document.getElementById('output');
+    displayOutput(outputElement, lastValidMessage);
+};
 
-function showTooltip(message, isError = false) {
-    const tooltip = document.getElementById('tooltip');
-    tooltip.innerText = message;
-    tooltip.style.backgroundColor = isError ? '#ff4c4c' : '#444';
-    
-    // Reset animation by removing and re-adding the 'show' class
-    tooltip.classList.remove('show');
-    void tooltip.offsetWidth; // Trigger reflow to restart transition
-    tooltip.classList.add('show');
-
-    // Automatically hide after 2 seconds
-    clearTimeout(tooltip.hideTimeout); // Clear any existing timeout
-    tooltip.hideTimeout = setTimeout(() => {
-        tooltip.classList.remove('show');
-    }, 2000); // Hide after 2 seconds
-}
-
-window.onload = loadTags;
+// Add an input event listener to validate and calculate dynamically
+document.getElementById('aspectRatio').addEventListener('input', validateAndCalculate);
